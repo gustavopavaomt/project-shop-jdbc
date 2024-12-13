@@ -8,8 +8,8 @@ public class DBConnection {
 
     private DBConnection(Connection connection){}
 
-    public static Connection getInstance(){
-        if(connection == null){
+    public static Connection getInstance() throws SQLException {
+        if(connection == null || connection.isClosed()){
             connection = initConnection();
         }
         return connection;

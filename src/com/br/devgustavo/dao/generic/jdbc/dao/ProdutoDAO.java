@@ -1,7 +1,7 @@
 package com.br.devgustavo.dao.generic.jdbc.dao;
 
 import com.br.devgustavo.dao.generic.jdbc.DBConnection;
-import com.br.devgustavo.domain.Cliente;
+import com.br.devgustavo.domain.Produto;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,21 +10,22 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteDAO implements IClienteDAO{
+public class ProdutoDAO implements IProdutoDAO{
 
     @Override
-    public Integer insert(Cliente cliente) throws Exception {
+    public Integer insert(Produto produto) throws Exception {
+
         Connection conn = null;
         PreparedStatement stm = null;
-        String sql = "INSERT INTO tb_cliente(codigo, nome) " +
-                     "VALUES (?, ?)";
-        try{
+        String sql = "INSERT INTO tb_produtos (nome, price, qtd_estoque) " +
+                     "VALUES (?, ?, ?)";
+        try {
             conn = DBConnection.getInstance();
             stm = conn.prepareStatement(sql);
-            stm.setString(1,cliente.getCodigo());
-            stm.setString(2,cliente.getNome());
+            stm.setString(1,produto.getNome());
+            stm.setDouble(2,produto.getPrice());
+            stm.setInt(3,produto.getQtd_estoque());
             return stm.executeUpdate();
-
         }catch (SQLException e){
             throw new RuntimeException(e.getMessage());
         }finally {
@@ -33,97 +34,88 @@ public class ClienteDAO implements IClienteDAO{
     }
 
     @Override
-    public Integer update(Cliente cliente) throws Exception {
+    public Integer update(Produto produto) throws Exception {
         Connection conn = null;
         PreparedStatement stm = null;
-        String sql = "UPDATE tb_cliente " +
-                    "SET codigo = ?, nome= ? " +
-                    "WHERE id = ?";
-        try{
+        String sql = "UPDATE tb_produtos " +
+                     "SET nome = ?, price = ?, qtd_estoque = ? " +
+                     "WHERE id = ?";
+        try {
             conn = DBConnection.getInstance();
             stm = conn.prepareStatement(sql);
-            stm.setString(1,cliente.getCodigo());
-            stm.setString(2,cliente.getNome());
-            stm.setInt(3, cliente.getId());
+            stm.setString(1,produto.getNome());
+            stm.setDouble(2,produto.getPrice());
+            stm.setInt(3,produto.getQtd_estoque());
+            stm.setInt(4,produto.getId());
             return stm.executeUpdate();
-
         }catch (SQLException e){
             throw new RuntimeException(e.getMessage());
         }finally {
             DBConnection.closeConnection(conn,stm,null);
         }
-    }
-
-    @Override
-    public Cliente find(String codigo) throws Exception {
-        Connection conn = null;
-        PreparedStatement stm = null;
-        ResultSet res = null;
-        Cliente cliente;
-        String sql = "SELECT * FROM tb_cliente WHERE codigo = ?";
-        try{
-            conn = DBConnection.getInstance();
-            stm = conn.prepareStatement(sql);
-            stm.setString(1, codigo);
-            res = stm.executeQuery();
-            if(res.next()){
-                cliente = new Cliente(res.getString("codigo"), res.getString("nome"));
-                cliente.setId(res.getInt("id"));
-                return cliente;
-            }
-
-        }catch (SQLException e){
-            throw new RuntimeException(e.getMessage());
-        }finally {
-            DBConnection.closeConnection(conn,stm,null);
-        }
-        return null;
-    }
-
-    @Override
-    public List<Cliente> findAll() throws Exception {
-        Connection conn = null;
-        PreparedStatement stm = null;
-        ResultSet res = null;
-        Cliente cliente;
-        List<Cliente> clienteList = new ArrayList<>();
-        String sql = "select * from tb_cliente";
-        try{
-            conn = DBConnection.getInstance();
-            stm = conn.prepareStatement(sql);
-            res = stm.executeQuery();
-
-            while (res.next()){
-                cliente = new Cliente(res.getString("codigo"), res.getString("nome"));
-                cliente.setId(res.getInt("id"));
-                clienteList.add(cliente);
-            }
-
-
-        }catch (SQLException e){
-            throw new RuntimeException(e.getMessage());
-        }finally {
-            DBConnection.closeConnection(conn,stm,null);
-        }
-        return clienteList;
-
     }
 
     @Override
     public Integer delete(Integer id) throws Exception {
         Connection conn = null;
         PreparedStatement stm = null;
-        String sql = "DELETE FROM tb_cliente WHERE id = ?";
-        try{
+        String sql = "DELETE FROM tb_produtos WHERE id = ?";
+        try {
             conn = DBConnection.getInstance();
             stm = conn.prepareStatement(sql);
-            stm.setInt(1,id);
+            stm.setInt(1, id);
             return stm.executeUpdate();
-
         }catch (SQLException e){
             throw new RuntimeException(e.getMessage());
         }finally {
             DBConnection.closeConnection(conn,stm,null);
         }
+    }
+
+    @Override
+    public List<Produto> findAll() throws Exception {
+        Connection conn = null;
+        PreparedStatement stm = null;
+        ResultSet rs = null;
+        Produto produto = null;
+        String sql = "SELECT * FROM tb_produtos";
+        List<Produto> produtoList = new ArrayList<>();
+        try{
+            conn = DBConnection.getInstance();
+            stm = conn.prepareStatement(sql);
+            rs = stm.executeQuery();
+            while (rs.next()){
+                produto = new Produto(rs.getString("nome"),rs.getDouble("price"),rs.getInt("qtd_estoque"));
+                produtoList.add(produto);
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e.getMessage());
+        }finally {
+            DBConnection.closeConnection(conn,stm,rs);
+        }
+        return produtoList;
+    }
+
+    @Override
+    public Produto findById(Integer id) throws Exception {
+        Connection conn = null;
+        PreparedStatement stm = null;
+        ResultSet rs = null;
+        Produto produto = null;
+        String sql = "SELECT * FROM tb_produtos WHERE id = ?";
+        try{
+            conn = DBConnection.getInstance();
+            stm = conn.prepareStatement(sql);
+            stm.setInt(1,id);
+            rs = stm.executeQuery();
+            if(rs.next()){
+                produto = new Produto(rs.getString("nome"),rs.getDouble("price"),rs.getInt("qtd_estoque"));
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e.getMessage());
+        }finally {
+            DBConnection.closeConnection(conn,stm,rs);
+        }
+        return produto;
     }
 }
